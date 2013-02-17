@@ -41,6 +41,11 @@ request(Method, Path) ->
 -spec request(Method::method(), Path::string(), Data::kvlist()) ->
                  kvlist() | {error, _}.
 
+request(Method=get, Path, Data) ->
+  Request = {string:join([Path, create_query(Data)], "?"), []},
+  Response = send_request(Method, Request),
+  parse_response(Response);
+
 request(Method, Path, Data) ->
   Payload = create_query(Data),
   Request  = {Path, [], "application/x-www-form-urlencoded", Payload},
