@@ -61,10 +61,11 @@ send_request(Method, Request) ->
   httpc:request(Method, Request, [{timeout, ?SERVER_TIMEOUT}], []).
  
 parse_response({ok, {{"HTTP/1.1", 200, "OK"}, Headers, Body}}) ->
-  case kf("content-type", Headers) of
-    "application/xml" ->
+  {ok, Regex} = re:compile("^application/(?<apptype>xml|json)"),
+  case re:run(kf("content-type", Headers), Regex, [{capture, [apptype], list}]) of
+    {match, ["xml"]} ->
       {ok, _Payload} = erlsom:simple_form(Body);
-    "application/json" ->
+    {match, ["json"]} ->
       Payload = mochijson2:decode(Body, [{format, proplist}]),
       {ok, Payload};
     _ ->
